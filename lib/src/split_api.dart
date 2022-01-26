@@ -4,6 +4,8 @@ import 'http_client.dart';
 
 class SplitAPI {
   static const String _baseHost = 'api.split.io';
+  static const int _defaultOffset = 0;
+  static const int _defaultLimit = 20;
 
   final _httpClient = HttpClient();
 
@@ -23,10 +25,17 @@ class SplitAPI {
   ///
   /// List Split names.
   /// https://docs.split.io/reference/list-splits
-  /// 
-  Future<List<String>> listSplitsName() async {
-    final response = await _httpClient.doGet(
-        Uri.https(_baseHost, _buildSplitsUrl()),
+  ///
+  Future<List<String>> listSplitsName(
+      {int offset = _defaultOffset,
+      int limit = _defaultLimit,
+      String? tag}) async {
+    final queryParams = _buildPaginationParams(offset, limit);
+    if (tag != null) {
+      queryParams['tag'] = tag;
+    }
+    final url = _buildSplitsUrl() + _addQueryParams(queryParams);
+    final response = await _httpClient.doGet(Uri.https(_baseHost, url),
         headers: _buildHeaders());
     var jsonData = json.decode(response.body);
     List<dynamic> list = jsonData['objects'];
@@ -39,8 +48,10 @@ class SplitAPI {
   /// Retrieves Split Definition list.
   /// https://docs.split.io/reference/lists-split-definitions-in-environment
   ///
-  Future<List<SplitDefinition>> getSplitDefinitionList() async {
-    final urlPath = _buildSplitDefinitionListUrl();
+  Future<List<SplitDefinition>> getSplitDefinitionList(
+      {int offset = _defaultOffset, int limit = _defaultLimit}) async {
+    final urlPath = _buildSplitDefinitionListUrl() +
+        _addQueryParams(_buildPaginationParams(offset, limit));
     final response =
         await _httpClient.doGet(_buildUri(urlPath), headers: _buildHeaders());
     var jsonData = json.decode(response.body);
@@ -53,7 +64,7 @@ class SplitAPI {
   ///
   /// Retrieve split definition.
   /// https://docs.split.io/reference/get-split-definition-in-environment
-  /// 
+  ///
   Future<SplitDefinition> getSplitDefinition(String splitName) async {
     final url = _buildSplitDefinitionUrl(splitName);
     final response =
@@ -70,6 +81,19 @@ class SplitAPI {
       '${_buildSplitsUrl()}/$name/environments/$_environment';
 
   String _buildSplitsUrl() => 'internal/api/v2/splits/ws/$_workspaceId';
+
+  String _addQueryParams(Map<String, dynamic> queryParams) {
+    String params = '?';
+    queryParams.forEach((key, value) {
+      params += '$key=$value&';
+    });
+    params = params.replaceRange(
+        params.lastIndexOf('&'), params.lastIndexOf('&') + 1, '');
+    return params;
+  }
+
+  Map<String, dynamic> _buildPaginationParams(int offset, int limit) =>
+      {'offset': offset, 'limit': limit};
 
   Uri _buildUri(String urlPath) => Uri.https(_baseHost, urlPath);
 
