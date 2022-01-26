@@ -1,7 +1,7 @@
 name: flutter_split
 description: Split API implementation for Flutter.
 version: 0.0.1
-homepage:
+homepage: https://github.com/gonzalonm/flutter_split
 
 environment:
   sdk: ">=2.15.1 <3.0.0"
