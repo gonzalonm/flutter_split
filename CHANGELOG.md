@@ -1,3 +1,6 @@
+## 0.0.1+2
+* Bugfixing.
+
 ## 0.0.1+1
 * Added pagination params (offset and limit).
 
