@@ -1,5 +1,5 @@
 ## 0.0.1+1
-* Updated README.md
+* Added pagination params (offset and limit).
 
 ## 0.0.1
 
