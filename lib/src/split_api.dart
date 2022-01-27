@@ -34,8 +34,8 @@ class SplitAPI {
     if (tag != null) {
       queryParams['tag'] = tag;
     }
-    final url = _buildSplitsUrl() + _addQueryParams(queryParams);
-    final response = await _httpClient.doGet(Uri.https(_baseHost, url),
+    final response = await _httpClient.doGet(
+        _buildUri(_buildSplitsUrl(), queryParams),
         headers: _buildHeaders());
     var jsonData = json.decode(response.body);
     List<dynamic> list = jsonData['objects'];
@@ -50,10 +50,10 @@ class SplitAPI {
   ///
   Future<List<SplitDefinition>> getSplitDefinitionList(
       {int offset = _defaultOffset, int limit = _defaultLimit}) async {
-    final urlPath = _buildSplitDefinitionListUrl() +
-        _addQueryParams(_buildPaginationParams(offset, limit));
-    final response =
-        await _httpClient.doGet(_buildUri(urlPath), headers: _buildHeaders());
+    final urlPath = _buildSplitDefinitionListUrl();
+    final response = await _httpClient.doGet(
+        _buildUri(urlPath, _buildPaginationParams(offset, limit)),
+        headers: _buildHeaders());
     var jsonData = json.decode(response.body);
     List<dynamic> list = jsonData['objects'];
     final splitList =
@@ -82,20 +82,14 @@ class SplitAPI {
 
   String _buildSplitsUrl() => 'internal/api/v2/splits/ws/$_workspaceId';
 
-  String _addQueryParams(Map<String, dynamic> queryParams) {
-    String params = '?';
-    queryParams.forEach((key, value) {
-      params += '$key=$value&';
-    });
-    params = params.replaceRange(
-        params.lastIndexOf('&'), params.lastIndexOf('&') + 1, '');
-    return params;
-  }
-
   Map<String, dynamic> _buildPaginationParams(int offset, int limit) =>
-      {'offset': offset, 'limit': limit};
+      {'offset': offset.toString(), 'limit': limit.toString()};
 
-  Uri _buildUri(String urlPath) => Uri.https(_baseHost, urlPath);
+  Uri _buildUri(
+    String urlPath, [
+    Map<String, dynamic>? queryParameters,
+  ]) =>
+      Uri.https(_baseHost, urlPath, queryParameters);
 
   Map<String, String> _buildHeaders() =>
       {'Content-Type': 'application/json', 'Authorization': 'Bearer $_apiKey'};
@@ -129,6 +123,19 @@ class SplitDefinition {
     return _isInTreatmentOn(userName) || _isDefaultTreatmentOn();
   }
 
+  @override
+  String toString() => toJson().toString();
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'defaultTreatment': defaultTreatment,
+        'baselineTreatment': baselineTreatment,
+        'environment': environment,
+        'treatments': treatments,
+        'trafficAllocation': trafficAllocation
+      };
+
   bool _isDefaultTreatmentOn() => defaultTreatment == 'on';
 
   bool _isInTreatmentOn(String userName) {
@@ -161,4 +168,7 @@ class _Treatment {
   late String name;
   late String description;
   late List<dynamic> keys = [];
+
+  Map<String, dynamic> toJson() =>
+      {'name': name, 'description': description, 'keys': keys};
 }
