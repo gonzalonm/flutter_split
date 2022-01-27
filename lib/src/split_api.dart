@@ -4,6 +4,8 @@ import 'http_client.dart';
 
 class SplitAPI {
   static const String _baseHost = 'api.split.io';
+  static const int _defaultOffset = 0;
+  static const int _defaultLimit = 20;
 
   final _httpClient = HttpClient();
 
@@ -23,10 +25,17 @@ class SplitAPI {
   ///
   /// List Split names.
   /// https://docs.split.io/reference/list-splits
-  /// 
-  Future<List<String>> listSplitsName() async {
+  ///
+  Future<List<String>> listSplitsName(
+      {int offset = _defaultOffset,
+      int limit = _defaultLimit,
+      String? tag}) async {
+    final queryParams = _buildPaginationParams(offset, limit);
+    if (tag != null) {
+      queryParams['tag'] = tag;
+    }
     final response = await _httpClient.doGet(
-        Uri.https(_baseHost, _buildSplitsUrl()),
+        _buildUri(_buildSplitsUrl(), queryParams),
         headers: _buildHeaders());
     var jsonData = json.decode(response.body);
     List<dynamic> list = jsonData['objects'];
@@ -39,10 +48,12 @@ class SplitAPI {
   /// Retrieves Split Definition list.
   /// https://docs.split.io/reference/lists-split-definitions-in-environment
   ///
-  Future<List<SplitDefinition>> getSplitDefinitionList() async {
+  Future<List<SplitDefinition>> getSplitDefinitionList(
+      {int offset = _defaultOffset, int limit = _defaultLimit}) async {
     final urlPath = _buildSplitDefinitionListUrl();
-    final response =
-        await _httpClient.doGet(_buildUri(urlPath), headers: _buildHeaders());
+    final response = await _httpClient.doGet(
+        _buildUri(urlPath, _buildPaginationParams(offset, limit)),
+        headers: _buildHeaders());
     var jsonData = json.decode(response.body);
     List<dynamic> list = jsonData['objects'];
     final splitList =
@@ -53,7 +64,7 @@ class SplitAPI {
   ///
   /// Retrieve split definition.
   /// https://docs.split.io/reference/get-split-definition-in-environment
-  /// 
+  ///
   Future<SplitDefinition> getSplitDefinition(String splitName) async {
     final url = _buildSplitDefinitionUrl(splitName);
     final response =
@@ -71,7 +82,14 @@ class SplitAPI {
 
   String _buildSplitsUrl() => 'internal/api/v2/splits/ws/$_workspaceId';
 
-  Uri _buildUri(String urlPath) => Uri.https(_baseHost, urlPath);
+  Map<String, dynamic> _buildPaginationParams(int offset, int limit) =>
+      {'offset': offset.toString(), 'limit': limit.toString()};
+
+  Uri _buildUri(
+    String urlPath, [
+    Map<String, dynamic>? queryParameters,
+  ]) =>
+      Uri.https(_baseHost, urlPath, queryParameters);
 
   Map<String, String> _buildHeaders() =>
       {'Content-Type': 'application/json', 'Authorization': 'Bearer $_apiKey'};
@@ -105,6 +123,19 @@ class SplitDefinition {
     return _isInTreatmentOn(userName) || _isDefaultTreatmentOn();
   }
 
+  @override
+  String toString() => toJson().toString();
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'defaultTreatment': defaultTreatment,
+        'baselineTreatment': baselineTreatment,
+        'environment': environment,
+        'treatments': treatments,
+        'trafficAllocation': trafficAllocation
+      };
+
   bool _isDefaultTreatmentOn() => defaultTreatment == 'on';
 
   bool _isInTreatmentOn(String userName) {
@@ -137,4 +168,7 @@ class _Treatment {
   late String name;
   late String description;
   late List<dynamic> keys = [];
+
+  Map<String, dynamic> toJson() =>
+      {'name': name, 'description': description, 'keys': keys};
 }

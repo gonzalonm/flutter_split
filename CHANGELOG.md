@@ -1,3 +1,6 @@
+## 0.0.1+1
+* Added pagination params (offset and limit).
+
 ## 0.0.1
 
 * Created SplitAPI.
