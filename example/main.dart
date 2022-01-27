@@ -2,9 +2,9 @@ import 'package:flutter_split/flutter_split.dart';
 
 void main(List<String> arguments) async {
   final splitApi = SplitAPI(
-      workspaceId: '17ce8460-7bda-11ec-af45-1699d15ca5a6',
-      environmentIdOrName: '17e36bf0-7bda-11ec-af45-1699d15ca5a6',
-      apiKey: 'bka80mh5sfuhjptla6o0s6d0gsgravg04uio');
+      workspaceId: 'YOUR_WORKSPACE_ID',
+      environmentIdOrName: 'YOUR_ENVIRONMENT_ID',
+      apiKey: 'YOUR_API_KEY');
 
   // List split definitions
   print('List split definitions');
@@ -21,6 +21,6 @@ void main(List<String> arguments) async {
   // Retrieve split definition given split name.
   print('Retrieve split definition given split name.');
   final mySplitDefinition =
-      await splitApi.getSplitDefinition('mailchimp_subscription');
+      await splitApi.getSplitDefinition('split_name');
   print(mySplitDefinition.toString());
 }
