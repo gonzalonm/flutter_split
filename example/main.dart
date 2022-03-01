@@ -1,23 +1,35 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_split/flutter_split.dart';
 
 void main(List<String> arguments) async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // PLEASE, USE YOUR OWN assets/.env FILE!!
+  final properties =
+      _parsePropertiesFile(await rootBundle.loadString('/.env_dev'));
+
   final splitApi = SplitAPI(
-      //workspaceId:'YOUR_WORKSPACE_ID',
-      //environmentIdOrName: 'YOUR_ENVIRONMENT_ID',
-      //apiKey: 'YOUR_API_KEY'
-      workspaceId: '17ce8460-7bda-11ec-af45-1699d15ca5a6',
-      environmentIdOrName: '17e36bf0-7bda-11ec-af45-1699d15ca5a6',
-      apiKey: 'bka80mh5sfuhjptla6o0s6d0gsgravg04uio');
+      workspaceId: properties['WORKSPACE_ID'],
+      environmentIdOrName: properties['ENVIRONMENT_ID'],
+      apiKey: properties['API_KEY']);
 
-  // await _createSplit(splitApi);
+  final splitName = 'my_split_${DateTime.now().millisecondsSinceEpoch}';
 
-  await _getSplit(splitApi);
+  const trySplitDefinitions = false;
 
-  //await _listSplitDefinitions(splitApi);
+  await _createSplit(splitApi, splitName);
 
-  //await _listSplitNames(splitApi);
+  await _getSplit(splitApi, splitName);
 
-  //await _retrieveSplitDefinition(splitApi);
+  if (trySplitDefinitions) {
+    await _retrieveSplitDefinition(splitApi, splitName);
+    await _listSplitDefinitions(splitApi);
+  }
+
+  await _deleteSplit(splitApi, splitName);
+
+  await _listSplitNames(splitApi);
 }
 
 Future<void> _listSplitDefinitions(SplitAPI splitApi) async {
@@ -34,21 +46,39 @@ Future<void> _listSplitNames(SplitAPI splitApi) async {
   print(splitNames);
 }
 
-Future<void> _retrieveSplitDefinition(SplitAPI splitApi) async {
+Future<void> _retrieveSplitDefinition(
+    SplitAPI splitApi, String splitName) async {
   print('Retrieve split definition given split name.');
-  final mySplitDefinition = await splitApi.getSplitDefinition('split_name');
+  final mySplitDefinition = await splitApi.getSplitDefinition(splitName);
   print(mySplitDefinition.toString());
 }
 
-Future<void> _createSplit(SplitAPI splitApi) async {
+Future<void> _createSplit(SplitAPI splitApi, String splitName) async {
   print('Create new split');
-  final mySplit = await splitApi.createSplit(
-      name: 'my_split_${DateTime.now().millisecond}');
-  print(mySplit.toString());
+  final mySplit = await splitApi.createSplit(name: splitName);
+  print('Created split: ${mySplit.toString()}');
 }
 
-Future<void> _getSplit(SplitAPI splitApi) async {
+Future<void> _deleteSplit(SplitAPI splitApi, String splitName) async {
+  print('Delete split');
+  await splitApi.deleteSplit(name: splitName);
+  print('Deleted split :$splitName');
+}
+
+Future<void> _getSplit(SplitAPI splitApi, String splitName) async {
   print('Get Split');
-  final split = await splitApi.getSplit(name: 'chat');
+  final split = await splitApi.getSplit(name: splitName);
   print(split.toString());
+}
+
+Map<String, dynamic> _parsePropertiesFile(String content) {
+  final data = <String, dynamic>{};
+  final list = content.split('\n');
+  for (var line in list) {
+    if (line.contains('=')) {
+      final pair = line.split('=');
+      data[pair[0]] = pair[1];
+    }
+  }
+  return data;
 }

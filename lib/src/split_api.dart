@@ -75,6 +75,22 @@ class SplitAPI {
   }
 
   ///
+  /// Delete Split
+  /// https://docs.split.io/reference/delete-split
+  ///
+  Future<void> deleteSplit({required String name}) async {
+    final response = await _httpClient.doDelete(
+        _buildUri(_buildSplitNameUrl(name)),
+        headers: _buildHeaders());
+
+    final jsonData = json.decode(response.body);
+
+    if (response.statusCode != 200) {
+      throw Exception(jsonData);
+    }
+  }
+
+  ///
   /// List Split names.
   /// https://docs.split.io/reference/list-splits
   ///
