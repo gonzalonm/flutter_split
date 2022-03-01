@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:flutter_split/src/split.dart';
+
 import 'http_client.dart';
 
 class SplitAPI {
@@ -12,15 +14,81 @@ class SplitAPI {
   ///
   /// Creates a new instance of SplitAPI.
   ///
-  SplitAPI({String? workspaceId, String? environmentIdOrName, String? apiKey}) {
+  SplitAPI(
+      {String? workspaceId,
+      String? environmentIdOrName,
+      String? apiKey,
+      String? trafficType = 'user'}) {
     _workspaceId = workspaceId;
     _environment = environmentIdOrName;
     _apiKey = apiKey;
+    _trafficTypeName = trafficType;
   }
 
   String? _workspaceId;
   String? _environment;
   String? _apiKey;
+  String? _trafficTypeName;
+
+  //////////////
+  /// SPLITS ///
+  //////////////
+
+  ///
+  /// Create a Split in your organization given a traffic type
+  /// https://docs.split.io/reference/create-split
+  ///
+  Future<Split> createSplit({required String name, String? description}) async {
+    final payload = {'name': name};
+    if (description != null) {
+      payload['description'] = description;
+    }
+    final response = await _httpClient.doPost(
+        _buildUri(_buildSplitCreationUrl()),
+        headers: _buildHeaders(),
+        payload: payload);
+
+    var jsonData = json.decode(response.body);
+
+    if (response.statusCode != 200) {
+      throw Exception(jsonData);
+    }
+
+    return Split.fromJson(jsonData);
+  }
+
+  ///
+  /// Get Split
+  /// https://docs.split.io/reference/get-split
+  ///
+  Future<Split> getSplit({required String name}) async {
+    final response = await _httpClient
+        .doGet(_buildUri(_buildSplitNameUrl(name)), headers: _buildHeaders());
+
+    var jsonData = json.decode(response.body);
+
+    if (response.statusCode != 200) {
+      throw Exception(jsonData);
+    }
+
+    return Split.fromJson(jsonData);
+  }
+
+  ///
+  /// Delete Split
+  /// https://docs.split.io/reference/delete-split
+  ///
+  Future<void> deleteSplit({required String name}) async {
+    final response = await _httpClient.doDelete(
+        _buildUri(_buildSplitNameUrl(name)),
+        headers: _buildHeaders());
+
+    final jsonData = json.decode(response.body);
+
+    if (response.statusCode != 200) {
+      throw Exception(jsonData);
+    }
+  }
 
   ///
   /// List Split names.
@@ -38,6 +106,11 @@ class SplitAPI {
         _buildUri(_buildSplitsUrl(), queryParams),
         headers: _buildHeaders());
     var jsonData = json.decode(response.body);
+
+    if (response.statusCode != 200) {
+      throw Exception(jsonData);
+    }
+
     List<dynamic> list = jsonData['objects'];
     List<String> splitNames =
         list.map((element) => element['name'] as String).toList();
@@ -55,6 +128,11 @@ class SplitAPI {
         _buildUri(urlPath, _buildPaginationParams(offset, limit)),
         headers: _buildHeaders());
     var jsonData = json.decode(response.body);
+
+    if (response.statusCode != 200) {
+      throw Exception(jsonData);
+    }
+
     List<dynamic> list = jsonData['objects'];
     final splitList =
         list.map((element) => SplitDefinition.fromJson(element)).toList();
@@ -71,8 +149,17 @@ class SplitAPI {
         await _httpClient.doGet(_buildUri(url), headers: _buildHeaders());
     var jsonData = json.decode(response.body);
 
+    if (response.statusCode != 200) {
+      throw Exception(jsonData);
+    }
+
     return SplitDefinition.fromJson(jsonData);
   }
+
+  String _buildSplitCreationUrl() =>
+      '${_buildSplitsUrl()}/trafficTypes/$_trafficTypeName';
+
+  String _buildSplitNameUrl(String name) => '${_buildSplitsUrl()}/$name';
 
   String _buildSplitDefinitionListUrl() =>
       '${_buildSplitsUrl()}/environments/$_environment';

@@ -1,6 +1,6 @@
 name: flutter_split
 description: Unofficial Flutter plugin as a simple wrapper of Split.io API.
-version: 0.0.1+2
+version: 0.0.2
 homepage: https://github.com/gonzalonm/flutter_split
 
 environment:
@@ -15,3 +15,6 @@ dependencies:
 
 dev_dependencies:
   flutter_lints: ^1.0.0
+
+assets:
+  - assets/
