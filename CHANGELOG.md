@@ -1,6 +1,7 @@
 ## 0.0.2
 * Added 'CreatedSplit' functionality.
 * Added 'GetSplit' functionality.
+* Added 'CreateSplit' functionality.
 
 ## 0.0.1+2
 * Bugfixing.
