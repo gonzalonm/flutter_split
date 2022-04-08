@@ -24,6 +24,12 @@ class HttpClient {
         headers: headers, body: payload);
   }
 
+  Future<http.Response> doPatch(Uri uri,
+      {Map<String, String>? headers, Map<String, Object>? payload}) async {
+    return await _doCall(_HttpMethod.patch, uri,
+        headers: headers, body: payload);
+  }
+
   void _putDefaultHeaders(Map<String, String>? headers) {
     headers ??= {};
     headers['Accept'] = 'application/json';
@@ -49,8 +55,10 @@ class HttpClient {
         return await http.put(uri, headers: headers, body: jsonEncode(body));
       case _HttpMethod.delete:
         return await http.delete(uri, headers: headers, body: jsonEncode(body));
+      case _HttpMethod.patch:
+        return await http.patch(uri, headers: headers, body: jsonEncode(body));
     }
   }
 }
 
-enum _HttpMethod { get, post, put, delete }
+enum _HttpMethod { get, post, put, delete, patch }

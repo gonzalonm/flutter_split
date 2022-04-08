@@ -1,7 +1,10 @@
+## 0.0.2+1
+* Improved documentation.
+
 ## 0.0.2
-* Added 'CreatedSplit' functionality.
-* Added 'GetSplit' functionality.
-* Added 'CreateSplit' functionality.
+* Support for Delete Split
+* Support for Get Split
+* Support for Create Split
 
 ## 0.0.1+2
 * Bugfixing.
